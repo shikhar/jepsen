@@ -37,7 +37,7 @@
     (setup! [_ test node]
       (c/su
         (c/cd "/tmp"
-              (let [version "1.1.0"
+              (let [version "1.2.1"
                     debfile (str "elasticsearch-" version ".deb")
                     uri     (str "https://download.elasticsearch.org/"
                                  "elasticsearch/elasticsearch/"
@@ -61,24 +61,24 @@
 
         (info node "configuring elasticsearch")
         (c/exec :echo
-                (-> "elasticsearch/elasticsearch.yml"
+                (-> "elasticsearch/elasticsearch-eskka.yml"
                     io/resource
                     slurp
-                    (str/replace "$HOSTS" (json/generate-string
-                                            (vals (c/on-many (:nodes test)
-                                                             (net/local-ip))))))
+                    (str/replace "$ESKKA_ME" (net/local-ip))
+                    (str/replace "$ESKKA_SEED_NODES" (json/generate-string (vals (c/on-many (:nodes test) (net/local-ip))))))
                 :> "/etc/elasticsearch/elasticsearch.yml")
 
-        (info node "starting elasticsearch")
-        (c/exec :service :elasticsearch :restart))
+        (info node "installing eskka")
+        (c/exec "/usr/share/elasticsearch/bin/plugin" :--url "https://s3.amazonaws.com/eskka/eskka-0.3.0.zip" :--install :eskka)
 
-      (wait 60 :green)
-      (info node "elasticsearch ready"))
+        (info node "starting elasticsearch")
+        (c/exec :service :elasticsearch :restart)))
 
     (teardown! [_ test node]
       (c/su
         (meh (c/exec :service :elasticsearch :stop))
-        (c/exec :rm :-rf "/var/lib/elasticsearch/elasticsearch"))
+        (c/exec :rm :-rf "/var/lib/elasticsearch/elasticsearch")
+        (c/exec :rm :-rf "/usr/share/elasticsearch/plugins"))
       (info node "elasticsearch nuked"))))
 
 (defn http-error
@@ -104,23 +104,25 @@
 (defrecord CreateSetClient [client]
   client/Client
   (setup! [_ test node]
-    (let [; client (es/connect [[(name node) 9300]])]
-          client (es/connect (str "http://" (name node) ":9200"))]
-      ; Create index
-      (try
-        (esi/create client index-name
-                    :mappings {"number" {:properties
-                                         {:num {:type "integer"
-                                                :store "yes"}}}}
-                    :settings {"index" {"refresh_interval" "1"}})
-        (catch clojure.lang.ExceptionInfo e
-          ; Is this seriously how you're supposed to do idempotent
-          ; index creation? I've gotta be doing this wrong.
-          (let [err (http-error e)]
-            (when-not (re-find #"IndexAlreadyExistsException" err)
-              (throw (RuntimeException. err))))))
+    (do
+      (c/on-many (:nodes test) (wait 200 :green))
+      (let [; client (es/connect [[(name node) 9300]])]
+            client (es/connect (str "http://" (name node) ":9200"))]
+        ; Create index
+        (try
+          (esi/create client index-name
+                      :mappings {"number" {:properties
+                                           {:num {:type "integer"
+                                                  :store "yes"}}}}
+                      :settings {"index" {"refresh_interval" "1"}})
+          (catch clojure.lang.ExceptionInfo e
+            ; Is this seriously how you're supposed to do idempotent
+            ; index creation? I've gotta be doing this wrong.
+            (let [err (http-error e)]
+              (when-not (re-find #"IndexAlreadyExistsException" err)
+                (throw (RuntimeException. err))))))
 
-      (CreateSetClient. client)))
+        (CreateSetClient. client))))
 
   (invoke! [this test op]
       (case (:f op)

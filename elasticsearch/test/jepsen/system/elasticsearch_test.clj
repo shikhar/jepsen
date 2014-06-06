@@ -54,6 +54,7 @@
                (assoc
                  noop-test
                  :name      "elasticsearch"
+                 :ssh       {:username "root" :private-key-path "~/.ssh/id_rsa"}
                  :os        debian/os
                  :db        db
                  :client    (create-set-client)

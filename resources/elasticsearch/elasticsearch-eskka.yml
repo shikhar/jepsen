@@ -1,0 +1,9 @@
+index.number_of_replicas: 2
+
+plugin.mandatory: eskka
+
+discovery.type: eskka.EskkaDiscoveryModule
+
+discovery.eskka.host: $ESKKA_ME
+
+discovery.eskka.seed_nodes: $ESKKA_SEED_NODES

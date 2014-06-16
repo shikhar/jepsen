@@ -68,6 +68,13 @@
                     (str/replace "$ESKKA_SEED_NODES" (json/generate-string (vals (c/on-many (:nodes test) (net/local-ip))))))
                 :> "/etc/elasticsearch/elasticsearch.yml")
 
+        (info node "configuring elasticsearch logging")
+        (c/exec :echo
+                (-> "elasticsearch/logging.yml"
+                    io/resource
+                    slurp)
+                :> "/etc/elasticsearch/logging.yml")
+
         (info node "installing eskka")
         (c/exec "/usr/share/elasticsearch/bin/plugin" :--url "https://s3.amazonaws.com/eskka/eskka-0.4.0-SNAPSHOT.zip" :--install :eskka)
 

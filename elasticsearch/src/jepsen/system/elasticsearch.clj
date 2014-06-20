@@ -107,9 +107,7 @@
                     slurp
                     (str/replace "$NAME"  (name node))
                     (str/replace "$ESKKA_ME" (net/local-ip))
-                    (str/replace "$HOSTS" (json/generate-string
-                                            (vals (c/on-many (:nodes test)
-                                                             (net/local-ip))))))
+                    (str/replace "$ESKKA_SEED_NODES" (json/generate-string (vals (c/on-many (:nodes test) (net/local-ip))))))
                 :> "/etc/elasticsearch/elasticsearch.yml")
 
         (info node "configuring elasticsearch logging")
@@ -120,7 +118,7 @@
                 :> "/etc/elasticsearch/logging.yml")
 
         (info node "installing eskka")
-        (c/exec "/usr/share/elasticsearch/bin/plugin" :--url "https://s3.amazonaws.com/eskka/eskka-0.4.0.zip" :--install :eskka)
+        (c/exec "/usr/share/elasticsearch/bin/plugin" :--url "https://s3.amazonaws.com/eskka/eskka-0.5.0-SNAPSHOT.zip" :--install :eskka)
 
         (info node "starting elasticsearch")
         (c/exec :service :elasticsearch :restart)))

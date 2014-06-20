@@ -61,7 +61,11 @@
                  :model     (model/set)
                  :checker   (checker/compose {:html timeline/html
                                               :set  checker/set})
-                 :nemesis   (nemesis/partition-halves)
+                 :nemesis   isolate-self-primaries-nemesis
+                 ;:nemesis   (nemesis/partition-random-node)
+                 ;:nemesis   (nemesis/partition-random-halves)
+                 ;:nemesis   (nemesis/partition-halves)
+                 ;:nemesis   (nemesis/partitioner nemesis/bridge)
                  :generator (gen/phases
                               (->> (range)
                                    (map (fn [x] {:type  :invoke
@@ -72,11 +76,12 @@
                                    (gen/delay 1)
                                    (gen/nemesis
                                      (gen/seq
-                                       (cycle [(gen/sleep 60)
-                                               {:type :info :f :start}
-                                               (gen/sleep 300)
-                                               {:type :info :f :stop}])))
-                                   (gen/time-limit 600))
+                                       (cycle
+                                         [(gen/sleep 30)
+                                          {:type :info :f :start}
+                                          (gen/sleep 200)
+                                          {:type :info :f :stop}])))
+                                   (gen/time-limit 400))
                               (gen/nemesis
                                 (gen/once {:type :info :f :stop}))
                               (gen/clients

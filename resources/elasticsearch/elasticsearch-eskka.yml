@@ -1,3 +1,5 @@
+node.name: $NAME
+
 index.number_of_replicas: 4
 
 plugin.mandatory: eskka

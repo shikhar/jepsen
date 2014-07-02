@@ -118,7 +118,7 @@
                 :> "/etc/elasticsearch/logging.yml")
 
         (info node "installing eskka")
-        (c/exec "/usr/share/elasticsearch/bin/plugin" :--url "https://s3.amazonaws.com/eskka/eskka-0.5.0-SNAPSHOT.zip" :--install :eskka)
+        (c/exec "/usr/share/elasticsearch/bin/plugin" :--url "https://s3.amazonaws.com/eskka/eskka-0.5.0.zip" :--install :eskka)
 
         (info node "starting elasticsearch")
         (c/exec :service :elasticsearch :restart)))

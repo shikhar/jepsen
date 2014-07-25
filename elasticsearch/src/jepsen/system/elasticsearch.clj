@@ -73,7 +73,7 @@
     (setup! [_ test node]
       (c/su
         (c/cd "/tmp"
-              (let [version "1.2.1"
+              (let [version "1.3.0"
                     debfile (str "elasticsearch-" version ".deb")
                     uri     (str "https://download.elasticsearch.org/"
                                  "elasticsearch/elasticsearch/"
@@ -118,7 +118,7 @@
                 :> "/etc/elasticsearch/logging.yml")
 
         (info node "installing eskka")
-        (c/exec "/usr/share/elasticsearch/bin/plugin" :--url "https://s3.amazonaws.com/eskka/eskka-0.5.0.zip" :--install :eskka)
+        (c/exec "/usr/share/elasticsearch/bin/plugin" :--url "https://s3.amazonaws.com/eskka/eskka-0.8.0-SNAPSHOT.zip" :--install :eskka)
 
         (info node "starting elasticsearch")
         (c/exec :service :elasticsearch :restart)))
